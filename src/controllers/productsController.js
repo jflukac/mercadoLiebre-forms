@@ -6,6 +6,7 @@ const products = JSON.parse(fs.readFileSync(productsFilePath, 'utf-8'));
 
 const toThousand = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const newProduct = function(req) {
+	console.log(products[-1])
 	let newProduct = {
 		id: (products.length + 1),
 		name: req.body.name,
@@ -13,7 +14,7 @@ const newProduct = function(req) {
 		discount: req.body.discount,
 		category: req.body.category,
 		description: req.body.description,
-		image: req.body.image,
+		image: req.files[0].filename,
 	};
 	products.push(newProduct);
 	let productsJSON = JSON.stringify(products);
@@ -27,14 +28,16 @@ const deleteProduct = function(req) {
 	return productsJSON
 }
 
+
+
 const controller = {
 	// Root - Show all products
-	index: (req, res) => {
+	index: (req, res, next) => {
 			res.render ('products', {products, toThousand})
 	},
 
 	// Detail - Detail from one product
-	detail: (req, res) => {
+	detail: (req, res, next) => {
 		const product = products.find(item =>  item.id == req.params.id);
 		if(product.discount) {
 			product.finalPrice = toThousand(product.price * (1 - product.discount/100))
@@ -46,30 +49,30 @@ const controller = {
 	},
 
 	// Create - Form to create
-	create: (req, res) => {
+	create: (req, res, next) => {
 		res.render('product-create-form')
 	},
 	
 	// Create -  Method to store
-	store: (req, res) => {
+	store: (req, res, next) => {
 		fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), newProduct(req));
 		res.redirect('/products')
 	},
 
 	// Update - Form to edit
-	edit: (req, res) => {
+	edit: (req, res, next) => {
 		const productToEdit = products.find(item =>  item.id == req.params.id);
 		res.render('product-edit-form', {productToEdit, title: 'Editando ' + productToEdit.name})
 	},
 	// Update - Method to update
-	update: (req, res) => {
+	update: (req, res, next) => {
 		// fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), deleteProduct(req));
 		// fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), newProduct(req));
 		res.render('detail', {product, title: product.name})
 	},
 
 	// Delete - Delete one product from DB
-	destroy : (req, res) => {
+	destroy : (req, res, next) => {
 		fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), deleteProduct(req));
 		res.redirect('/products')
 	}
