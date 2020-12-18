@@ -5,7 +5,27 @@ const productsFilePath = path.join(__dirname, '../data/productsDataBase.json');
 const products = JSON.parse(fs.readFileSync(productsFilePath, 'utf-8'));
 
 const toThousand = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
+const newProduct = function(req) {
+	let newProduct = {
+		id: (products.length + 1),
+		name: req.body.name,
+		price: req.body.price,
+		discount: req.body.discount,
+		category: req.body.category,
+		description: req.body.description,
+		image: req.body.image,
+	};
+	products.push(newProduct);
+	let productsJSON = JSON.stringify(products);
+	return productsJSON
+}
+const deleteProduct = function(req) {
+	const product = products.find(item =>  item.id == req.params.id);
+	let index = products.indexOf(product);
+	let productsModify = products.splice(index, 1);
+	let productsJSON = JSON.stringify(productsModify);
+	return productsJSON
+}
 
 const controller = {
 	// Root - Show all products
@@ -32,7 +52,8 @@ const controller = {
 	
 	// Create -  Method to store
 	store: (req, res) => {
-		res.send(req.body)
+		fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), newProduct(req));
+		res.redirect('/products')
 	},
 
 	// Update - Form to edit
@@ -42,12 +63,15 @@ const controller = {
 	},
 	// Update - Method to update
 	update: (req, res) => {
+		// fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), deleteProduct(req));
+		// fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), newProduct(req));
 		res.render('detail', {product, title: product.name})
 	},
 
 	// Delete - Delete one product from DB
 	destroy : (req, res) => {
-		res.redirect('/')
+		fs.writeFileSync(path.join(__dirname, '../data/productsDataBase.json'), deleteProduct(req));
+		res.redirect('/products')
 	}
 };
 
